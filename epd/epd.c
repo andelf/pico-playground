@@ -12,20 +12,20 @@ GP20 => RES
 GP21 => DC
 GP22 => CS
 GP23 => BUSY
-
 */
 
 #define PIN_LED 25
 
 #define PIN_MISO 16
 #define PIN_SCK 18
-#define PIN_MOSI 19 // SDA
+#define PIN_MOSI 19
 #define PIN_RES 20
 #define PIN_DC 21
 #define PIN_CS 22
 #define PIN_BUSY 26
 
 #define PIN_RST PIN_RES
+#define PIN_SDA PIN_MOSI
 
 #define SPI_PORT spi0
 
@@ -63,15 +63,19 @@ static inline void cs_deselect() {
   asm volatile("nop \n nop \n nop");
 }
 
+static inline void command_mode() { gpio_put(PIN_DC, 0); }
+
+static inline void data_mode() { gpio_put(PIN_DC, 1); }
+
 static void epd_send_command(uint8_t reg) {
-  gpio_put(PIN_DC, 0);
+  command_mode();
   cs_select();
   spi_write_blocking(SPI_PORT, &reg, 1);
   cs_deselect();
 }
 
 static void epd_send_data(uint8_t data) {
-  gpio_put(PIN_DC, 1);
+  data_mode();
   cs_select();
   spi_write_blocking(SPI_PORT, &data, 1);
   cs_deselect();
@@ -83,6 +87,7 @@ void epd_interface_init() {
   gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
   gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
 
+  // LOW=NOT BUSY
   gpio_init(PIN_BUSY);
   gpio_set_dir(PIN_BUSY, GPIO_IN);
 
@@ -91,12 +96,11 @@ void epd_interface_init() {
 
   gpio_init(PIN_DC);
   gpio_set_dir(PIN_DC, GPIO_OUT);
-  // gpio_put(PIN_CS, 1);
 
   // Chip select is active-low
   gpio_init(PIN_CS);
   gpio_set_dir(PIN_CS, GPIO_OUT);
-  gpio_put(PIN_CS, 1);
+  gpio_put(PIN_CS, 1); // deselect
 }
 
 void epd_hw_reset() {
@@ -253,7 +257,7 @@ void epd_display(uint8_t *fb_black, uint8_t *fb_red) {
 }
 
 void epd_sleep() {
-  epd_send_command(0x22); // power off
+  epd_send_command(0x22); // save power
   epd_send_data(0xC3);
   epd_send_data(0x20);
 
@@ -287,7 +291,7 @@ int main() {
   // epd_display_black(BLACK_FB);
   epd_display(FB_BLACK, FB_RED);
 
-  // epd_sleep();
+  epd_sleep();
 
   while (true) {
     gpio_put(PIN_LED, 1);
