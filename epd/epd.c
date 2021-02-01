@@ -233,18 +233,18 @@ void epd_init() {
   // LUT
   // 0x15, 0x41, 0xA8, 0x32, 0x30, 0x0A
   // 0x17, 0x41, 0xAC, 0x32, 0x1B, 0x07
-  epd_send_command(0x03);
+  epd_send_command(0x03); // gate voltage
   epd_send_data(0x15);
 
-  epd_send_command(0x04);
-  epd_send_data(0x41);
-  epd_send_data(0xA8);
-  epd_send_data(0x32);
+  epd_send_command(0x04); // source voltage
+  epd_send_data(0x41); // vsh1
+  epd_send_data(0xA8); // vsh2
+  epd_send_data(0x32); // vsl
 
   epd_send_command(0x3A); // dummy line
   epd_send_data(0x30);
 
-  epd_send_command(0x3B); // gate time
+  epd_send_command(0x3B); // gate width
   epd_send_data(0x0A);
 
   epd_send_command(0x32);
