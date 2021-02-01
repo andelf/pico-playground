@@ -11,7 +11,8 @@ GP19 => SDA
 GP20 => RES
 GP21 => DC
 GP22 => CS
-GP23 => BUSY
+.. gap
+GP26 => BUSY
 */
 
 #define PIN_LED 25
